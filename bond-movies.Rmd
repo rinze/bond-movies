@@ -1,0 +1,34 @@
+---
+title: "James Bond through the ages"
+author: "José María Mateos - http://rinzewind.org/blog-en"
+output: html_document
+---
+
+The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will be out in a few days. I thought it would be a very nice exercise to do a quick check on how did previous movies do in terms of overall quality (as assessed by the critics and / or the public) and box office earnings. More to the point, I wanted to do that just by writing a single R script, and scraping data off the web, just for fun.
+
+Specifically, we want to obtain the following data for each movie:
+
+* Year.
+* Who played James?
+* What did the public say?
+* What did the critics say?
+* Box office (corrected for inflation).
+
+This is the list of resources to get data from:
+
+* [Wikipedia](https://en.wikipedia.org) (of course).
+* [IMDB](https://www.imdb.com) (well, of course again).
+* [Metacritic](https://www.metacritic.com) (really, what were you expecting?).
+* [The FED](https://www.federalreserve.org) (ah, gotcha!).
+
+And this is the list of relevant libraries for this project:
+
+* `XML`: we'll need it to parse some of the webpages, tables and such. I will use [xpath](https://en.wikipedia.org/wiki/XPath).
+* `ggplot2`: for nice plots.
+
+So, let's start by loading these libraries:
+
+```{r loadlibs}
+library(XML)
+library(ggplot2)
+```
