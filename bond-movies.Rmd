@@ -4,7 +4,7 @@ author: "José María Mateos - http://rinzewind.org/blog-en"
 output: html_document
 ---
 
-The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will be out in a few days. I thought it would be a very nice exercise to do a quick check on how did previous movies do in terms of overall quality (as assessed by the critics and / or the public) and box office earnings. More to the point, I wanted to do that just by writing a single R script, and scraping data off the web, just for fun.
+The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will be out in a few weeks I thought it would be a very nice exercise to do a quick check on how did previous movies do in terms of overall quality (as assessed by the critics and / or the public) and box office earnings. More to the point, I wanted to do that just by writing a single R script, and scraping data off the web, just for fun.
 
 Specifically, we want to obtain the following data for each movie:
 
@@ -20,7 +20,7 @@ This is the list of resources to get data from:
 
 * [Wikipedia](https://en.wikipedia.org) (of course).
 
-Really, that's it. I was planning on doing a lot of the analysis myself, but it turns out Wikipedia already has a page with all the relevant information condensed. So no need to duplicated any efforts.
+Really, that's it. I was planning on doing a lot of the analysis myself, but it turns out Wikipedia already has a page with all the relevant information condensed. So no need to duplicate any efforts.
 
 (Just for the record, my old workflow used a different Wikipedia page, then went to IMDB, then to the Federal Reserve for info on inflation. Turns out IMDB doesn't let you scrape their site, so I was trying to find some workaround when I saw a new and wonderful Wikipedia page. In any case, please note that there are [undocumented](https://stackoverflow.com/questions/1966503/does-imdb-provide-an-api) and [unoficial](http://www.omdbapi.com/) APIs, if you ever need them).
 
@@ -83,6 +83,8 @@ names(table1) <- c("Actor", "Number of movies")
 table1
 ```
 
+Seems OK. Now we can plot how Bond movies have done both in terms of box office and critical reception. We have enough data to do it, so without further ado:
+
 ```{r plots, fig.width = 12, fig.height = 10}
 plt1 <- ggplot(bond) + 
         geom_smooth(aes(x = RT, y = Boffice), 
@@ -99,8 +101,14 @@ plt1 <- ggplot(bond) +
         geom_text(aes(x = RT, y = Boffice, label = Title), angle = -45,
                   size = 4, hjust = 0, vjust = 2, alpha = 0.4) +
        annotate("text", label = "Source: Wikipedia (https://en.wikipedia.org/wiki/List_of_James_Bond_films)",
-                x = 40, y = 900, hjust = 0.32, color = "gray")
+                x = 40, y = 900, hjust = 0.25, color = "gray")
 print(plt1)
 ```
 
-This is also telling us something about the profitability of the movie business.
+There are several things we can comment:
+
+1. There is a *general James Bond performance*: if the movie is good (according to the critics), it will do well in the box office. Curiously, both *Casino Royale* installments practically sit at opposites end of the specetrum (with the comic one being terrible and the serious one being very good).
+
+2. The underappreciated: Timothy Dalton and George Lazenby. They did decent movies, but their box office earnings were way low.
+
+3. The gold mines: *Skyfall*, *Thunderball* and *Goldfinger* were amazing for the production company, even if they weren't better than *Dr. No* or *From Russia with Love*. After *Thunderball* (1967), it took another 47 years for a Bond film to surpass it at the box office (*Skyfall*, 2012).
