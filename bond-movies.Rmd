@@ -8,27 +8,99 @@ The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will 
 
 Specifically, we want to obtain the following data for each movie:
 
+* Title.
 * Year.
 * Who played James?
-* What did the public say?
 * What did the critics say?
 * Box office (corrected for inflation).
+
+I am not taking the director into consideration, sorry. I might be ignorant about that specific detail, but before Sam Mendes directed [Skyfall](http://www.imdb.com/title/tt1074638/) I didn't even care about who was in charge of each movie.
 
 This is the list of resources to get data from:
 
 * [Wikipedia](https://en.wikipedia.org) (of course).
-* [IMDB](https://www.imdb.com) (well, of course again).
-* [Metacritic](https://www.metacritic.com) (really, what were you expecting?).
-* [The FED](https://www.federalreserve.org) (ah, gotcha!).
+
+Really, that's it. I was planning on doing a lot of the analysis myself, but it turns out Wikipedia already has a page with all the relevant information condensed. So no need to duplicated any efforts.
+
+(Just for the record, my old workflow used a different Wikipedia page, then went to IMDB, then to the Federal Reserve for info on inflation. Turns out IMDB doesn't let you scrape their site, so I was trying to find some workaround when I saw a new and wonderful Wikipedia page. In any case, please note that there are [undocumented](https://stackoverflow.com/questions/1966503/does-imdb-provide-an-api) and [unoficial](http://www.omdbapi.com/) APIs, if you ever need them).
 
 And this is the list of relevant libraries for this project:
 
-* `XML`: we'll need it to parse some of the webpages, tables and such. I will use [xpath](https://en.wikipedia.org/wiki/XPath).
+* `RCurl`: for reading HTTPS data.
+* `XML`: we'll need it to parse Wikipedia tables using its very handy `readHTMLTable` function.
 * `ggplot2`: for nice plots.
 
 So, let's start by loading these libraries:
 
 ```{r loadlibs}
+library(RCurl)
 library(XML)
 library(ggplot2)
+# Configure the plots
+theme_set(theme_bw(16))
 ```
+
+Let's proceed. [This is the relevant Wikipedia page](https://en.wikipedia.org/wiki/List_of_James_Bond_films), which stores the info in two separate tables (EON or non-EON films; these last ones include Peter Seller's [Casino Royale](http://www.imdb.com/title/tt0061452/?ref_=nm_flmg_act_24)). Let's read and merge them.
+
+```{r wikipedia, cache = TRUE}
+doc <- getURL("https://en.wikipedia.org/wiki/List_of_James_Bond_films")
+tables <- readHTMLTable(doc, stringsAsFactors = FALSE)
+# Relevant tables are 1 and 3
+t1 <- tables[[1]]
+t1s <- tables[[2]]
+t2 <- tables[[3]]
+t1 <- t1[, c(1, 2, 3, 8, 9)]
+t1s <- t1s[, c(2, 4)]
+t1 <- merge(t1, t1s)
+t2 <- t2[, c(2, 1, 3, 7, 8, 9)]
+t2 <- t2[-1, ]
+tab_names <- c("Year", "Title", "Actor", "Boffice", "Budget", "RT")
+names(t1) <- tab_names
+names(t2) <- tab_names
+# Let's keep this, just in case
+t1$eon <- TRUE
+t2$eon <- FALSE
+bond <- rbind(t1, t2)
+bond$Year <- as.numeric(bond$Year)
+bond <- bond[order(bond$Year), ]
+
+# Now let's correct some errors in the parsing, and assign proper numerical values
+# where necessary
+bond$Title <- gsub(x = bond$Title, pattern = ".*\\!", replacement = "")
+bond$Actor <- sapply(bond$Actor, function(x) substr(x, nchar(x) / 2 + 2, nchar(x)))
+bond$RT <- gsub(x = bond$RT, pattern = "%.*", replacement = "")
+bond$Boffice <- as.numeric(bond$Boffice)
+bond$Budget <- as.numeric(bond$Budget)
+bond$RT <- as.numeric(bond$RT)
+```
+
+Ok, we have the data. Let's do a quick check:
+
+```{r bond_table}
+table1 <- aggregate(RT ~ Actor, bond, length)
+table1 <- table1[order(-table1$RT), ]
+names(table1) <- c("Actor", "Number of movies")
+table1
+```
+
+```{r plots, fig.width = 12, fig.height = 10}
+plt1 <- ggplot(bond) + 
+        geom_smooth(aes(x = RT, y = Boffice), 
+                    method = "lm",
+                    color = "black") +
+       geom_point(aes(x = RT, 
+                      y = Boffice, 
+                      color = Actor), 
+                  size = 6) +
+        scale_color_manual(values = rainbow(7),
+                           name = "Actor playing Bond") +
+        ylab("Box office [M$, adjusted for inflation, values of 2005]\n") +
+        xlab("\nRottenTomatoes.com score [%]") +
+        geom_text(aes(x = RT, y = Boffice, label = Title), angle = -45,
+                  size = 4, hjust = 0, vjust = 2, alpha = 0.4) +
+       annotate("text", label = "Source: Wikipedia (https://en.wikipedia.org/wiki/List_of_James_Bond_films)",
+                x = 40, y = 900, hjust = 0.32, color = "gray")
+print(plt1)
+```
+
+This is also telling us something about the profitability of the movie business.
