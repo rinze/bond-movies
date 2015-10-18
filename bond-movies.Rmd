@@ -4,7 +4,7 @@ author: "José María Mateos - http://rinzewind.org/blog-en"
 output: html_document
 ---
 
-The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will be out in a few weeks I thought it would be a very nice exercise to do a quick check on how did previous movies do in terms of overall quality (as assessed by the critics and / or the public) and box office earnings. More to the point, I wanted to do that just by writing a single R script, and scraping data off the web, just for fun.
+The new James Bond movie, [Spectre](http://www.imdb.com/title/tt2379713/), will be out in a few weeks. I thought it would be a very nice exercise to do a quick check on how did previous movies do in terms of overall quality (as assessed by the critics and / or the public) and box office earnings. More to the point, I wanted to do that just by writing a single R script, and scraping data off the web, just for fun.
 
 Specifically, we want to obtain the following data for each movie:
 
